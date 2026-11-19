@@ -4,4 +4,23 @@ function go(k,push){if(!P[k])k='home';if(k===cur)return;cur=k;f.srcdoc=P[k];if(p
 window.addEventListener('message',function(e){if(e.data&&e.data.nav)go(e.data.nav,true)});
 window.addEventListener('hashchange',function(){go(location.hash.slice(1),false)});
 go(location.hash.slice(1),false);
+
+(function(){
+var T="flexwriters-5cdcf2589639",seen={},count=0;
+function owner(){try{if(/[?&]owner=1/.test(location.search))localStorage.setItem('fw_owner','1');return localStorage.getItem('fw_owner')==='1'}catch(e){return false}}
+function once(k){try{if(sessionStorage.getItem(k))return false;sessionStorage.setItem(k,'1');return true}catch(e){if(seen[k])return false;seen[k]=1;return true}}
+function ping(title,msg,key){if(owner()||count>12||!once('fw_'+key))return;count++;
+var dev=/Mobi|Android/i.test(navigator.userAgent)?'Mobile':'Desktop';
+try{fetch('https://ntfy.sh',{method:'POST',body:JSON.stringify({topic:T,title:title,message:msg+' ('+dev+(document.referrer?', from '+document.referrer:'')+')',tags:['eyes']})})}catch(e){}}
+ping('New visitor','Someone opened the site','visit');
+f.addEventListener('load',function(){
+var pg=cur||'home';ping('Page view','Viewing: '+pg,'pg_'+pg);
+try{var d=f.contentDocument;
+d.addEventListener('click',function(e){var a=e.target.closest('a,button');if(!a)return;var h=a.getAttribute('href')||'',t=(a.textContent||'').replace(/\s+/g,' ').trim().slice(0,40);
+if(/wa\.me/.test(h))ping('WhatsApp click','Tapped WhatsApp on '+pg+': '+t,'wa_'+pg+t);
+else if(/^mailto:/.test(h))ping('Email click','Tapped email on '+pg,'mail_'+pg);
+else if(a.tagName==='BUTTON')ping('Interaction','Clicked "'+t+'" on '+pg,'btn_'+pg+t)},true);
+d.addEventListener('input',function(e){if(e.target.id==='page-slider')ping('Calculator','Using the price calculator','calc')},true);
+d.addEventListener('submit',function(){ping('Form','Submitted a form on '+pg,'form_'+pg)},true)}catch(e){}});
+})();
 </script></body></html>
